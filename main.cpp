@@ -10,18 +10,28 @@
  *
  * Created on 27 февраля 2020 г., 8:05
  */
+#if !defined (__linux__)
+#error "unknown OS"
+#endif
 
 #include <cstdlib>
+
 #include <iostream>
+//#include <string>
+#include "board.hpp"
 
-using namespace std;
 
-/*
- * 
- */
+
 int main(int argc, char** argv) {
 
-    std::cout << "hello!\n";
+    using spi_adc_client::board;
+    try
+    {
+       board b;
+    } catch(board::board_error const & e)
+    {
+       std::cout<< e.what() << std::endl; 
+    }
     return 0;
 }
 
