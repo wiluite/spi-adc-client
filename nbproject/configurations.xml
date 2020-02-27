@@ -9,7 +9,9 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Файлы заголовков"
                    projectFiles="true">
+      <itemPath>arg_functions.hpp</itemPath>
       <itemPath>board.hpp</itemPath>
+      <itemPath>board_functions.hpp</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Файлы ресурсов"
@@ -44,7 +46,11 @@
           <commandLine>-fsanitize=address,leak</commandLine>
         </linkerTool>
       </compileType>
+      <item path="arg_functions.hpp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="board.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="board_functions.hpp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -69,7 +75,11 @@
           <developmentMode>5</developmentMode>
         </asmTool>
       </compileType>
+      <item path="arg_functions.hpp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="board.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="board_functions.hpp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.cpp" ex="false" tool="1" flavor2="0">
       </item>

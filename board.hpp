@@ -42,10 +42,8 @@ namespace spi_adc_client
                 return msg.c_str();
             }
         };
-        
-        
-    private:    
-        
+                
+    private:            
 //--- board_handle
         class spi_device_opening_error : public board_error
         {
