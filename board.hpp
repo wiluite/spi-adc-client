@@ -20,11 +20,9 @@
 
 #include <fcntl.h>
 #include <sys/ioctl.h>
-//#include <linux/ioctl.h>
-//#include <sys/stat.h>
-//#include <linux/types.h>
 #include <linux/spi/spidev.h>
 #include <unistd.h>
+#include <string>
 
 
 namespace spi_adc_client
@@ -32,10 +30,12 @@ namespace spi_adc_client
     class board
     {
     public:
-        struct board_error : public std::exception
+        class board_error : public std::exception
         {
+        protected:    
             mutable std::string msg {"board_error"};
-            board_error() {}
+        public:    
+            board_error() = default;
             explicit board_error(char const * m) : msg(m) {}
             const char* what() const noexcept override
             {
@@ -134,11 +134,13 @@ namespace spi_adc_client
             
             friend class board;
         };
-    public:
-        board_handle handle;
+
+        board_handle handle_;
         board_initializer initializer;
         
-        board() : initializer (handle) {}
+    public:
+        
+        board() : initializer (handle_) {}
                 
         decltype(initializer.bits) get_bits() const
         {
@@ -148,6 +150,11 @@ namespace spi_adc_client
         decltype(initializer.speed) get_speed() const
         {
             return initializer.speed;
+        }
+        
+        int handle() const
+        {
+            return handle_;
         }
                 
     };

@@ -13,6 +13,7 @@
 
 #ifndef ARG_FUNCTIONS_HPP
 #define ARG_FUNCTIONS_HPP
+#include <unordered_map>
 
 namespace spi_adc_data
 {    
@@ -41,7 +42,7 @@ namespace spi_adc_client
     #define ADC_SPI_FREQ_50K  2
     #define ADC_SPI_FREQ_100K 3
     
-    uint8_t freq_code() const noexcept
+    uint8_t freq_code() noexcept
     {
         using spi_adc_data::channel_rate;
         
@@ -49,17 +50,17 @@ namespace spi_adc_client
         return ch_rate_to_code[channel_rate];
     }
     
-    uint8_t input_range_code() const noexcept
+    uint8_t input_range_code() noexcept
     {
         return SPI_RANGE_10; // no difference for imitator
     }
 
-    constexpr uint8_t sample_size() const noexcept
+    constexpr uint8_t sample_size() noexcept
     {
         return sizeof(spi_adc_data::recv_sample_type);
     };
     
-    uint8_t ch_cnt() const noexcept
+    uint8_t ch_cnt() noexcept
     {
         return spi_adc_data::ch_count;
     }
