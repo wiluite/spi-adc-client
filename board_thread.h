@@ -6,7 +6,7 @@
 
 /* 
  * File:   board_thread.h
- * Author: user
+ * Author: wiluite
  *
  * Created on 5 марта 2020 г., 9:35
  */
@@ -19,7 +19,6 @@ namespace spi_adc_client
 {
     static std::thread spi_thread;
     static std::atomic<bool> io_flag{false};
-//    static uint8_t rcv_buf[100000];
     static uint8_t rcv_buf[std::numeric_limits<max_read_length_type>::max()+std::numeric_limits<max_read_length_type>::min()+1];
     static_assert(sizeof(rcv_buf)== 65536, "");
 
@@ -56,44 +55,17 @@ namespace spi_adc_client
         }
     };
 
-//    static size_t adc_buf_ptr = 0;
-//    static size_t adc_buf_end = 0;
-//
-//    inline void fill_adc_buffer (uint32_t len, recv_sample_type * const adc_buf)
-//    {
-//        auto const sample_count = len / sizeof(recv_sample_type);
-//        auto const rest = adc_buf_end - adc_buf_ptr;
-//        if (rest > sample_count)
-//        {
-//            memcpy (&adc_buf[adc_buf_ptr], rcv_buf, len);
-//            adc_buf_ptr += sample_count;
-//        } else
-//        {
-//            memcpy (&adc_buf[adc_buf_ptr], rcv_buf, rest * sizeof(recv_sample_type));
-//            auto const sample_count_minus_rest = sample_count - rest;
-//            if (sample_count_minus_rest)
-//            {
-//                memcpy (&adc_buf[0], &rcv_buf[rest * sizeof(recv_sample_type)], sample_count_minus_rest * sizeof(recv_sample_type));
-//            }
-//            adc_buf_ptr = sample_count_minus_rest;
-//        }
-//    }
-
     template<typename PO>
     void io_func(recv_sample_type * const adc_buf, const PO * const pr_opts)
     {
         SPIADCStarter<PO> starter;
         if (!starter.start_adc())
         {
-            Log_Wrapper("Не удалось запустить сбор данных!");
+            Log_Wrapper("Can't start data acquisition!");
             return;
         }
 
         io_flag = true;
-
-//        adc_buf_ptr = 0;
-//        adc_buf_end = pr_opts->cfg_adc_.rate * pr_opts->cfg_adc_.adc_buf_size_in_seconds;
-//        update_transfer_status(adc_buf_ptr, *pr_opts);
 
         while (io_flag)
         {
@@ -102,13 +74,6 @@ namespace spi_adc_client
                 static std::ofstream binary_file {"file.bin", std::ios::out | std::ios::binary};
                 binary_file.write ((char*)rcv_buf, len);                
             }
-//            {
-//                fill_adc_buffer (len, adc_buf);
-//                update_transfer_status(adc_buf_ptr, *pr_opts);
-//            } else
-//            {
-//                platform_sleep_micro(100);
-//            }
         }
         if (!starter.stop_adc())
         {

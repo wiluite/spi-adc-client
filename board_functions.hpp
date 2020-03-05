@@ -6,7 +6,7 @@
 
 /* 
  * File:   board_functions.hpp
- * Author: user
+ * Author: wiluite
  *
  * Created on 27 февраля 2020 г., 14:48
  */

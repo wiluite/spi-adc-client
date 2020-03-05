@@ -6,7 +6,7 @@
 
 /* 
  * File:   main.cpp
- * Author: user
+ * Author: wiluite
  *
  * Created on 27 февраля 2020 г., 8:05
  */
