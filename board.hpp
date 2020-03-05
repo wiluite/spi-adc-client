@@ -73,7 +73,7 @@ namespace spi_adc_client
             {
                 if (handle_ >= 0)
                 {
-                    ::close(handle_);                    
+                    close(handle_);                    
                 }
             }
             

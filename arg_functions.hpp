@@ -23,12 +23,14 @@ namespace spi_adc_data
     constexpr uint8_t set_adc_cmd = 5;  
  
     using recv_sample_type = int32_t;
+    using max_read_length_type = uint16_t;
     
     constexpr size_t channel_rate = 100000;
     
     constexpr uint8_t ch_count = 3;
     
     constexpr size_t common_rate = channel_rate * ch_count;
+    
     
 }
 

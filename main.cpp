@@ -13,6 +13,7 @@
 
 #include "board.hpp"
 #include "board_functions.hpp"
+#include "board_thread.h"
 
 int main(int argc, char** argv) {
 
