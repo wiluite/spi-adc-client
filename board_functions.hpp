@@ -62,18 +62,35 @@ namespace spi_adc_client
     bool configure(Board const & b)
     {
         using namespace spi_adc_data;
+        auto const ch_cnt_fun = []() noexcept {return spi_adc_data::ch_count;};
+        auto const freq_code_fun = []() noexcept 
+        {
+            uint8_t constexpr ADC_SPI_FREQ_10K = 0;
+            uint8_t constexpr ADC_SPI_FREQ_20K = 1;
+            uint8_t constexpr ADC_SPI_FREQ_50K = 2;
+            uint8_t constexpr ADC_SPI_FREQ_100K = 3;
+                    
+            static std::unordered_map<size_t, uint8_t> ch_rate_to_code = {{10000, ADC_SPI_FREQ_10K}, {20000, ADC_SPI_FREQ_20K}, {50000, ADC_SPI_FREQ_50K}, {100000, ADC_SPI_FREQ_100K}};
+            return ch_rate_to_code[spi_adc_data::channel_rate];
+        };
+        
+        constexpr uint8_t set_chan_cnt_cmd = 2;
+        constexpr uint8_t set_input_range_cmd = 3;
+        constexpr uint8_t set_sample_size_cmd = 4;
+        constexpr uint8_t set_adc_cmd = 5;  
+        
         return !(
-                (!setup_command(b, ch_cnt, set_chan_cnt_cmd, "Channel number setup command- OK: ", static_cast<int>(set_chan_cnt_cmd)
-                , " number: ", static_cast<int>(ch_cnt())))
-                ||
-                (!setup_command(b, sample_size, set_sample_size_cmd, "Sample size setup command- OK: ", static_cast<int>(set_sample_size_cmd)
-                , " size: ", static_cast<int>(sample_size())))
+                (!setup_command(b, ch_cnt_fun, set_chan_cnt_cmd, "Channel number setup command- OK: ", static_cast<int>(set_chan_cnt_cmd)
+                , " number: ", static_cast<int>(ch_cnt_fun())))
                 ||
                 (!setup_command(b, input_range_code, set_input_range_cmd, "Input range setup command- OK: ", static_cast<int>(set_input_range_cmd)
                 , " range code: ", static_cast<int>(input_range_code())))
                 ||
-                (!setup_command(b, freq_code, set_adc_cmd, "Channel sample rate setup command- OK: ", static_cast<int>(set_adc_cmd), " : "
-                , channel_rate))
+                (!setup_command(b, sample_size, set_sample_size_cmd, "Sample size setup command- OK: ", static_cast<int>(set_sample_size_cmd)
+                , " size: ", static_cast<int>(sample_size())))                
+                ||
+                (!setup_command(b, freq_code_fun, set_adc_cmd, "Channel sample rate setup command- OK: ", static_cast<int>(set_adc_cmd), " : "
+                , spi_adc_data::channel_rate))
                 );        
     }
     
@@ -92,7 +109,7 @@ namespace spi_adc_client
             {(__u64)tx2, (__u64)rx2, sizeof(tx2), b.get_speed(), 0,  b.get_bits(), 0,   0, 0, 0}
         };
 
-        if (ioctl(b.get_handle(), SPI_IOC_MESSAGE(2), tr) < 1)
+        if (ioctl(b.handle(), SPI_IOC_MESSAGE(2), tr) < 1)
         {
             Log_Wrapper ("Can't call SPI_IOC_MESSAGE(2) for command: ", static_cast<int>(cmd));
             return false;
@@ -103,7 +120,7 @@ namespace spi_adc_client
 
 
     template<typename Board>
-    max_read_length_type read_buffer(Board & b, uint8_t * const buf_ptr, max_read_length_type len) noexcept
+    max_read_length_type read_buffer(Board const & b, uint8_t * const buf_ptr, max_read_length_type len) noexcept
     {
         static_assert(std::is_same<decltype(buf_ptr), uint8_t * const>::value, "");
 
@@ -123,7 +140,7 @@ namespace spi_adc_client
         tr[0].len = len;
                 
 
-        if (ioctl(b.get_handle(), SPI_IOC_MESSAGE(1), tr) < 1)
+        if (ioctl(b.handle(), SPI_IOC_MESSAGE(1), tr) < 1)
         {
             Log_Wrapper ("Can't send an SPI msg, len = ", len, __FILE__, " , ", __LINE__);
             return 0;

@@ -12,8 +12,8 @@
  */
 
 #include "board.hpp"
-#include "board_functions.hpp"
 #include "board_thread.h"
+#include <chrono>
 
 int main(int argc, char** argv) {
 
@@ -24,7 +24,10 @@ int main(int argc, char** argv) {
        board b;
        if (configure( b ))
        {
-           
+           std::thread io (spi_adc_client::io_func<decltype(b)>, b);
+           std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+           spi_adc_client::io_flag = false;
+           io.join();
        }
     } catch(board::board_error const & e)
     {
