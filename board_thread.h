@@ -26,14 +26,28 @@ namespace spi_adc_client
     class acquisition_switch
     {
         Board const & b;
+        
+        bool start_adc() const noexcept
+        {
+            constexpr uint8_t start_adc_cmd = 1;
+            return setup_command(b, []() noexcept {return (uint8_t)0;}, start_adc_cmd, "Start ADC command OK: ", (int) start_adc_cmd);
+            return true;
+        }
+
+        bool stop_adc() const  noexcept
+        {
+            constexpr uint8_t stop_adc_cmd = 0;
+            return setup_command(b, []() noexcept {return (uint8_t)0;}, stop_adc_cmd, "Stop ADC command OK: ", (int) stop_adc_cmd);
+            return true;
+        }
+        
     public:
         struct acquisition_switch_exception : public std::exception
-        {
-            
+        {            
         };
+        
         struct acquisition_switch_start_exception : public acquisition_switch_exception
-        {
-            
+        {            
         };
 
         using class_type = acquisition_switch<Board>;
@@ -63,21 +77,6 @@ namespace spi_adc_client
         acquisition_switch(class_type&&) = delete;
         acquisition_switch& operator=(class_type&&) = delete;
 
-    public:
-
-        bool start_adc() const noexcept
-        {
-            constexpr uint8_t start_adc_cmd = 1;
-            return setup_command(b, []() noexcept {return (uint8_t)0;}, start_adc_cmd, "Start ADC command OK: ", (int) start_adc_cmd);
-            return true;
-        }
-
-        bool stop_adc() const  noexcept
-        {
-            constexpr uint8_t stop_adc_cmd = 0;
-            return setup_command(b, []() noexcept {return (uint8_t)0;}, stop_adc_cmd, "Stop ADC command OK: ", (int) stop_adc_cmd);
-            return true;
-        }
     };
 
     template<typename Board>
