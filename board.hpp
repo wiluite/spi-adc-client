@@ -11,7 +11,7 @@
  * Created on 27 февраля 2020 г., 13:16
  */
 
-#if !defined (__linux__)
+#if !defined (__linux__) || !defined (__arm__)
 #error "unknown OS"
 #endif
 
@@ -135,26 +135,41 @@ namespace spi_adc_client
             friend class board;
         };
 
+        struct board_commander
+        {
+            board const& b;
+            board_commander (board const & b) : b(b) {}
+            void test() const {}
+        };
+        
         board_handle handle_;
         board_initializer initializer;
+        board_commander commander;
         
+        template <class T>
+        friend class acquisition_switch;
     public:
         
-        board() : initializer (handle_) {}
+        board() : initializer (handle_), commander(*this) {}
                 
-        decltype(initializer.bits) get_bits() const
+        decltype(initializer.bits) get_bits() const noexcept
         {
             return initializer.bits;
         }
 
-        decltype(initializer.speed) get_speed() const
+        decltype(initializer.speed) get_speed() const noexcept
         {
             return initializer.speed;
         }
-        
-        int handle() const
+                
+        operator int() const noexcept
         {
             return handle_;
+        }
+        
+        operator board_commander const & ()
+        {
+            return commander;
         }
                 
     };

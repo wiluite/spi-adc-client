@@ -9,7 +9,6 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Файлы заголовков"
                    projectFiles="true">
-      <itemPath>arg_functions.hpp</itemPath>
       <itemPath>board.hpp</itemPath>
       <itemPath>board_functions.hpp</itemPath>
       <itemPath>board_thread.h</itemPath>
@@ -41,48 +40,16 @@
       </toolsSet>
       <compileType>
         <ccTool>
+          <developmentMode>6</developmentMode>
+          <architecture>1</architecture>
           <standard>8</standard>
-          <commandLine>-stdlib=libc++ -pedantic-errors -fsanitize=address,leak</commandLine>
+          <commandLine>-mcpu=cortex-a53 -mfloat-abi=hard -mtune=cortex-a53 -stdlib=libc++ -fexceptions -fno-strict-aliasing -ftemplate-depth=1024 -pedantic-errors -mthread-model posix</commandLine>
+          <warningLevel>3</warningLevel>
         </ccTool>
         <linkerTool>
-          <commandLine>-fsanitize=address,leak</commandLine>
+          <commandLine>-stdlib=libc++ -lpthread -lrt -ldl -lm -lunwind</commandLine>
         </linkerTool>
       </compileType>
-      <item path="arg_functions.hpp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="board.hpp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="board_functions.hpp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="board_thread.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="log_wrapper.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="main.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-    </conf>
-    <conf name="Release" type="1">
-      <toolsSet>
-        <compilerSet>default</compilerSet>
-        <dependencyChecking>true</dependencyChecking>
-        <rebuildPropChanged>false</rebuildPropChanged>
-      </toolsSet>
-      <compileType>
-        <cTool>
-          <developmentMode>5</developmentMode>
-        </cTool>
-        <ccTool>
-          <developmentMode>5</developmentMode>
-        </ccTool>
-        <fortranCompilerTool>
-          <developmentMode>5</developmentMode>
-        </fortranCompilerTool>
-        <asmTool>
-          <developmentMode>5</developmentMode>
-        </asmTool>
-      </compileType>
-      <item path="arg_functions.hpp" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="board.hpp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="board_functions.hpp" ex="false" tool="3" flavor2="0">

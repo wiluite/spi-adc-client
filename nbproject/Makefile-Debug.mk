@@ -42,8 +42,8 @@ OBJECTFILES= \
 CFLAGS=
 
 # CC Compiler Flags
-CCFLAGS=-stdlib=libc++ -pedantic-errors -fsanitize=address,leak
-CXXFLAGS=-stdlib=libc++ -pedantic-errors -fsanitize=address,leak
+CCFLAGS=-m32 -mcpu=cortex-a53 -mfloat-abi=hard -mtune=cortex-a53 -stdlib=libc++ -fexceptions -fno-strict-aliasing -ftemplate-depth=1024 -pedantic-errors -mthread-model posix
+CXXFLAGS=-m32 -mcpu=cortex-a53 -mfloat-abi=hard -mtune=cortex-a53 -stdlib=libc++ -fexceptions -fno-strict-aliasing -ftemplate-depth=1024 -pedantic-errors -mthread-model posix
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -60,12 +60,12 @@ LDLIBSOPTIONS=
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/spi-adc-client: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/spi-adc-client ${OBJECTFILES} ${LDLIBSOPTIONS} -fsanitize=address,leak
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/spi-adc-client ${OBJECTFILES} ${LDLIBSOPTIONS} -stdlib=libc++ -lpthread -lrt -ldl -lm -lunwind
 
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
+	$(COMPILE.cc) -O3 -Werror -std=c++11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
 
 # Subprojects
 .build-subprojects:

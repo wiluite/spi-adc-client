@@ -24,9 +24,37 @@ int main(int argc, char** argv) {
        board b;
        if (configure( b ))
        {
-           std::thread io (spi_adc_client::io_func<decltype(b)>, b);
-           std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-           spi_adc_client::io_flag = false;
+            static std::atomic<bool> io_flag{false};
+            static uint8_t rcv_buf[std::numeric_limits<spi_adc_client::max_read_length_type>::max()+std::numeric_limits<spi_adc_client::max_read_length_type>::min()+1];
+            static_assert(sizeof(rcv_buf)== 65536, "");
+
+            std::thread io ([&b]() 
+            {
+                try
+                {
+                    spi_adc_client::acquisition_switch<board> s(b);        
+                    s.test();
+                    io_flag = true;
+                    while (io_flag)
+                    {
+                        if (auto const len = read_buffer(b, rcv_buf, read_ready_flag_command(b)))
+                        {
+                            static std::ofstream binary_file {"oscillogram.bin", std::ios::out | std::ios::binary};
+                            binary_file.write ((char*)rcv_buf, len);                
+                        } else
+                        {
+                            std::this_thread::sleep_for(std::chrono::microseconds(10));
+                        }
+                    }
+                } catch(typename spi_adc_client::acquisition_switch<board>::acquisition_switch_exception const & e)
+                {
+                    Log_Wrapper("acquisition_switch_start_exception ", e.what());
+                    return;
+                }
+           });
+           
+           std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+           io_flag = false;
            io.join();
        }
     } catch(board::board_error const & e)
