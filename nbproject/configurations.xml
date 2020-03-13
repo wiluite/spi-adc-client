@@ -10,7 +10,6 @@
                    displayName="Файлы заголовков"
                    projectFiles="true">
       <itemPath>board.hpp</itemPath>
-      <itemPath>board_functions.hpp</itemPath>
       <itemPath>log_wrapper.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -46,12 +45,10 @@
           <warningLevel>3</warningLevel>
         </ccTool>
         <linkerTool>
-          <commandLine>-stdlib=libc++ -lpthread -lrt -ldl -lm -lunwind</commandLine>
+          <commandLine>-stdlib=libc++ -lpthread -lrt -ldl -lm</commandLine>
         </linkerTool>
       </compileType>
       <item path="board.hpp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="board_functions.hpp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="log_wrapper.h" ex="false" tool="3" flavor2="0">
       </item>

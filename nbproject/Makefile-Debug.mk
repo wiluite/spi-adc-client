@@ -60,7 +60,7 @@ LDLIBSOPTIONS=
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/spi-adc-client: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/spi-adc-client ${OBJECTFILES} ${LDLIBSOPTIONS} -stdlib=libc++ -lpthread -lrt -ldl -lm -lunwind
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/spi-adc-client ${OBJECTFILES} ${LDLIBSOPTIONS} -stdlib=libc++ -lpthread -lrt -ldl -lm
 
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
