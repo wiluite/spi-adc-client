@@ -24,6 +24,7 @@
 #include <unistd.h>
 #include <string>
 
+#include "board_functions.hpp"
 
 namespace spi_adc_client
 {
@@ -135,19 +136,22 @@ namespace spi_adc_client
             friend class board;
         };
 
-        struct board_commander
+//--- board_commander        
+        
+        class board_commander
         {
             board const& b;
+            
+        public:    
             board_commander (board const & b) : b(b) {}
+        
             void test() const {}
         };
         
         board_handle handle_;
         board_initializer initializer;
         board_commander commander;
-        
-        template <class T>
-        friend class acquisition_switch;
+
     public:
         
         board() : initializer (handle_), commander(*this) {}
@@ -171,8 +175,71 @@ namespace spi_adc_client
         {
             return commander;
         }
-                
+        
+        template <class>
+        friend class acquisition_switch;                       
     };
+    
+    template<typename Board>
+    class acquisition_switch
+    {
+        Board const & b;
+        
+        bool start_adc() const noexcept
+        {
+            constexpr uint8_t start_adc_cmd = 1;
+            return setup_command(b, []() noexcept {return (uint8_t)0;}, start_adc_cmd, "Start ADC command OK: ", (int) start_adc_cmd);
+        }
+
+        bool stop_adc() const noexcept
+        {
+            constexpr uint8_t stop_adc_cmd = 0;
+            return setup_command(b, []() noexcept {return (uint8_t)0;}, stop_adc_cmd, "Stop ADC command OK: ", (int) stop_adc_cmd);
+        }
+        
+    public:
+        struct acquisition_switch_exception : public std::exception
+        {            
+        };
+        
+        struct acquisition_switch_start_exception : public acquisition_switch_exception
+        {            
+        };
+
+        acquisition_switch(Board const & b) : b(b) 
+        {
+            if (!start_adc())
+            {
+                Log_Wrapper("Can't start data acquisition!");
+                throw acquisition_switch_start_exception();
+            }
+        }
+        
+        using class_type = acquisition_switch<Board>;
+        
+        acquisition_switch(const class_type&) = delete;
+        acquisition_switch& operator=(const class_type&) = delete;
+        acquisition_switch(class_type&&) = delete;
+        acquisition_switch& operator=(class_type&&) = delete;
+                
+        ~acquisition_switch()
+        {
+            if (!stop_adc())
+            {
+                Log_Wrapper("Can't stop data acquisition!");     
+            } else
+            {
+                Log_Wrapper("Data acquisition successfully stopped.");                
+            }
+        }
+        
+        void test()
+        {
+            typename Board::board_commander const & _ = b;
+            _.test();
+        }        
+    };
+    
 }
 
 

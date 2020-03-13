@@ -12,8 +12,8 @@
  */
 
 #include "board.hpp"
-#include "board_thread.h"
 #include <chrono>
+#include <thread>
 
 int main(int argc, char** argv) {
 
@@ -32,15 +32,15 @@ int main(int argc, char** argv) {
             {
                 try
                 {
-                    spi_adc_client::acquisition_switch<board> s(b);        
-                    s.test();
+                    spi_adc_client::acquisition_switch<board> s(b);
+                    //s.test();
                     io_flag = true;
                     while (io_flag)
                     {
                         if (auto const len = read_buffer(b, rcv_buf, read_ready_flag_command(b)))
                         {
                             static std::ofstream binary_file {"oscillogram.bin", std::ios::out | std::ios::binary};
-                            binary_file.write ((char*)rcv_buf, len);                
+                            binary_file.write ((char const*)rcv_buf, len);                
                         } else
                         {
                             std::this_thread::sleep_for(std::chrono::microseconds(10));
