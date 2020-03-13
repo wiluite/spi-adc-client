@@ -45,10 +45,10 @@ namespace spi_adc_client
             }
         };
         
-        // public type
         using max_read_length_type = uint16_t;
                 
     private:            
+        
 //--- board_handle
         class spi_device_opening_error : public board_error
         {
@@ -140,8 +140,7 @@ namespace spi_adc_client
             friend class board;
         };
 
-//--- board_commander        
-        
+//--- board_commander                
         struct configure_command_error : public board_error
         {
             configure_command_error(char const* m ) : board_error(m) {}
@@ -181,30 +180,7 @@ namespace spi_adc_client
 
                 return true;
             }
-            
-            max_read_length_type read_ready_flag_command() const noexcept 
-            {
-                constexpr uint8_t cmd = 6;
-
-                constexpr uint8_t tx1[1] = {cmd};
-                constexpr uint8_t tx2[2] = {0xFF, 0xFF};
-                static uint8_t rx1[1]{}, rx2[2]{};
-
-                static struct spi_ioc_transfer tr[2]
-                {
-                    {(__u64) tx1, (__u64) rx1, sizeof (tx1), b.get_speed(), 50, b.get_bits(), 0, 0, 0, 0},
-                    {(__u64) tx2, (__u64) rx2, sizeof (tx2), b.get_speed(), 0, b.get_bits(), 0, 0, 0, 0}
-                };
-
-                if (ioctl(b, SPI_IOC_MESSAGE(2), tr) < 1) 
-                {
-                    Log_Wrapper("Can't call SPI_IOC_MESSAGE(2) for command: ", static_cast<int> (cmd), __FILE__, " , ", __LINE__);
-                    return false;
-                }
-
-                return (rx2[1] << 8) | rx2[0];
-            }
-            
+                        
             bool configure() const noexcept 
             {
                 auto const ch_cnt_fun = []() noexcept 
@@ -239,7 +215,8 @@ namespace spi_adc_client
                         {10000, ADC_SPI_FREQ_10K},
                         {20000, ADC_SPI_FREQ_20K},
                         {50000, ADC_SPI_FREQ_50K},
-                        {100000, ADC_SPI_FREQ_100K}};
+                        {100000, ADC_SPI_FREQ_100K}
+                    };
 
                     return ch_rate_to_code[channel_rate];
                 };
@@ -264,15 +241,37 @@ namespace spi_adc_client
                         , channel_rate))
                         );
             }
-            
-        public:    
-            
+
+            max_read_length_type read_ready_flag_command() const noexcept 
+            {
+                constexpr uint8_t cmd = 6;
+
+                constexpr uint8_t tx1[1] = {cmd};
+                constexpr uint8_t tx2[2] = {0xFF, 0xFF};
+                static uint8_t rx1[1]{}, rx2[2]{};
+
+                static struct spi_ioc_transfer tr[2]
+                {
+                    {(__u64) tx1, (__u64) rx1, sizeof (tx1), b.get_speed(), 50, b.get_bits(), 0, 0, 0, 0},
+                    {(__u64) tx2, (__u64) rx2, sizeof (tx2), b.get_speed(), 0, b.get_bits(), 0, 0, 0, 0}
+                };
+
+                if (ioctl(b, SPI_IOC_MESSAGE(2), tr) < 1) 
+                {
+                    Log_Wrapper("Can't call SPI_IOC_MESSAGE(2) for command: ", static_cast<int> (cmd), ",", __FILE__, ",", __LINE__);
+                    return false;
+                }
+
+                return (rx2[1] << 8) | rx2[0];
+            }
+                        
+        public:                
             explicit board_commander (board const & b) : b(b) 
             {
                 if (!configure())
                     throw configure_command_error("Can't configure board! Check your imitator software.");
             }
-            
+
             max_read_length_type read_buffer(uint8_t * const buf_ptr) const noexcept 
             {
                 static_assert(std::is_same<decltype(buf_ptr), uint8_t * const>::value, "");
@@ -280,9 +279,8 @@ namespace spi_adc_client
                 if (auto const len = read_ready_flag_command()) 
                 {                                   
                     static uint8_t dummy_tx_buf[std::numeric_limits<max_read_length_type>::max() + std::numeric_limits<max_read_length_type>::min() + 1];
-
                     static_assert(sizeof (dummy_tx_buf) == 65536, "");
-
+                    
                     static struct spi_ioc_transfer tr[1]
                     {
                         {(__u64) dummy_tx_buf, (__u64) buf_ptr, len, b.get_speed(), 0, b.get_bits(), 0, 0, 0, 0}
@@ -290,10 +288,9 @@ namespace spi_adc_client
 
                     tr[0].len = len;
 
-
                     if (ioctl(b, SPI_IOC_MESSAGE(1), tr) < 1) 
                     {
-                        Log_Wrapper("Can't send an SPI msg, len = ", len, __FILE__, " , ", __LINE__);
+                        Log_Wrapper("Can't send an SPI msg, len = ", len, ",", __FILE__, ",", __LINE__);
                         return 0;
                     }                    
                     return len;                    
@@ -301,9 +298,7 @@ namespace spi_adc_client
                 {
                     return 0;
                 }
-            }
-            
-            void test() const {}
+            }           
             
             template <class>
             friend class acquisition_switch;            
@@ -336,34 +331,32 @@ namespace spi_adc_client
         {
             return commander;
         }
-        
-        template <class>
-        friend class acquisition_switch;
+                
         max_read_length_type read_buffer(uint8_t * const buf_ptr) const noexcept 
         {
             return commander.read_buffer(buf_ptr);
         }        
+        
+        template <class>
+        friend class acquisition_switch;        
     };
     
     template<typename Board>
     class acquisition_switch
     {
         Board const & b;
+        typename Board::board_commander const & bc;
         
         bool start_adc() const noexcept
         {
             constexpr uint8_t start_adc_cmd = 1;
-            typename Board::board_commander const & _ = b;
-            return _.setup_command([]() noexcept {return (uint8_t)0;}, start_adc_cmd, "Start ADC command OK: ", (int) start_adc_cmd);
-            return true;
+            return bc.setup_command([]() noexcept {return (uint8_t)0;}, start_adc_cmd, "Start ADC command OK: ", (int) start_adc_cmd);
         }
 
         bool stop_adc() const noexcept
         {
             constexpr uint8_t stop_adc_cmd = 0;
-            typename Board::board_commander const & _ = b;
-            return _.setup_command([]() noexcept {return (uint8_t)0;}, stop_adc_cmd, "Stop ADC command OK: ", (int) stop_adc_cmd);
-            return true;
+            return bc.setup_command([]() noexcept {return (uint8_t)0;}, stop_adc_cmd, "Stop ADC command OK: ", (int) stop_adc_cmd);
         }
         
     public:
@@ -375,7 +368,7 @@ namespace spi_adc_client
         {            
         };
 
-        acquisition_switch(Board const & b) : b(b) 
+        explicit acquisition_switch(Board const & b) : b(b), bc(b)
         {
             if (!start_adc())
             {
@@ -391,7 +384,7 @@ namespace spi_adc_client
         acquisition_switch(class_type&&) = delete;
         acquisition_switch& operator=(class_type&&) = delete;
                 
-        ~acquisition_switch()
+        ~acquisition_switch() noexcept
         {
             if (!stop_adc())
             {
