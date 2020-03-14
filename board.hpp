@@ -166,13 +166,13 @@ namespace spi_adc_client
 
                 if (ioctl(b, SPI_IOC_MESSAGE(2), tr) < 1) 
                 {
-                    Log_Wrapper("Can't call SPI_IOC_MESSAGE(2) for command: ", static_cast<int> (cmd_number), ",", __FILE__, ",", __LINE__);
+                    Log_Wrapper("can't call SPI_IOC_MESSAGE(2) for command: ", static_cast<int> (cmd_number), ",", __FILE__, ",", __LINE__);
                     return false;
                 }
 
                 if (((rx2[1] << 8) | rx2[0]) != cmd_number) 
                 {
-                    Log_Wrapper("No reply or reply is invalid: ", static_cast<int> (cmd_number), ",", __FILE__, ",", __LINE__);
+                    Log_Wrapper("no reply to command or reply is invalid: ", static_cast<int> (cmd_number), ",", __FILE__, ",", __LINE__);
                     return false;
                 }
 
@@ -199,7 +199,7 @@ namespace spi_adc_client
                 auto const sample_size_fun = []() noexcept 
                 {
                     using recv_sample_type = int32_t;
-                    return (uint8_t)sizeof (recv_sample_type);
+                    return static_cast<uint8_t>(sizeof (recv_sample_type));
                 };
 
                 constexpr size_t channel_rate = 100000;
@@ -240,7 +240,7 @@ namespace spi_adc_client
                         , static_cast<int> (set_sample_size_cmd)
                         , " size: ", static_cast<int> (sample_size_fun())))
                         ||
-                        (!setup_command(freq_code_fun, set_adc_cmd, "Channel sample rate setup command- OK: "
+                        (!setup_command(freq_code_fun, set_adc_cmd, "Channel sample rate setup command - OK: "
                         , static_cast<int> (set_adc_cmd), " : "
                         , channel_rate))
                         );
@@ -262,7 +262,7 @@ namespace spi_adc_client
 
                 if (ioctl(b, SPI_IOC_MESSAGE(2), tr) < 1) 
                 {
-                    Log_Wrapper("Can't call SPI_IOC_MESSAGE(2) for command: ", static_cast<int> (cmd), ",", __FILE__, ",", __LINE__);
+                    Log_Wrapper("can't call SPI_IOC_MESSAGE(2) for command: ", static_cast<int> (cmd), ",", __FILE__, ",", __LINE__);
                     return false;
                 }
 
@@ -273,7 +273,7 @@ namespace spi_adc_client
             explicit board_commander (board const & b) : b(b) 
             {
                 if (!configure())
-                    throw configure_command_error("Can't configure board! Check your imitator software.");
+                    throw configure_command_error("can't configure board, check your imitator software.");
             }
 
             max_read_length_type read_buffer(uint8_t * const buf_ptr) const noexcept 
@@ -294,7 +294,7 @@ namespace spi_adc_client
 
                     if (ioctl(b, SPI_IOC_MESSAGE(1), tr) < 1) 
                     {
-                        Log_Wrapper("Can't send an SPI msg, len = ", len, ",", __FILE__, ",", __LINE__);
+                        Log_Wrapper("can't send an SPI msg, len = ", len, ",", __FILE__, ",", __LINE__);
                         return 0;
                     }                    
                     return len;                    
@@ -336,7 +336,7 @@ namespace spi_adc_client
             return commander;
         }
                 
-        max_read_length_type read_buffer(uint8_t * const buf_ptr) const noexcept 
+        auto read_buffer(uint8_t * const buf_ptr) const noexcept -> decltype(commander.read_buffer(buf_ptr))
         {
             return commander.read_buffer(buf_ptr);
         }        
@@ -354,13 +354,13 @@ namespace spi_adc_client
         bool start_adc() const noexcept
         {
             constexpr uint8_t start_adc_cmd = 1;
-            return bc.setup_command([]() noexcept {return (uint8_t)0;}, start_adc_cmd, "Start ADC command OK: ", (int) start_adc_cmd);
+            return bc.setup_command([]() noexcept {return (uint8_t)0;}, start_adc_cmd, "Start ADC command - OK: ", static_cast<int>(start_adc_cmd));
         }
 
         bool stop_adc() const noexcept
         {
             constexpr uint8_t stop_adc_cmd = 0;
-            return bc.setup_command([]() noexcept {return (uint8_t)0;}, stop_adc_cmd, "Stop ADC command OK: ", (int) stop_adc_cmd);
+            return bc.setup_command([]() noexcept {return (uint8_t)0;}, stop_adc_cmd, "Stop ADC command - OK: ", static_cast<int>(stop_adc_cmd));
         }
         
     public:
@@ -393,7 +393,7 @@ namespace spi_adc_client
         {
             if (!stop_adc())
             {
-                Log_Wrapper("Can't stop data acquisition!");     
+                Log_Wrapper("can't stop data acquisition!");     
             } else
             {
                 Log_Wrapper("Data acquisition successfully stopped.");                
