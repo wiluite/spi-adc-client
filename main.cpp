@@ -38,7 +38,8 @@ int main(int argc, char** argv)
                     {
                         static std::ofstream binary_file{"oscillogram.bin", std::ios::out | std::ios::binary};
                         binary_file.write((char const*) rcv_buf, len);
-                    } else {
+                    } else 
+                    {
                         std::this_thread::sleep_for(std::chrono::microseconds(10));
                     }
                 }
@@ -54,7 +55,7 @@ int main(int argc, char** argv)
         io.join();
     } catch (board::board_error const & e)
     {
-       std::cout << e.what() << '\n';
+        Log_Wrapper(e.what());
     }
     return 0;
 }

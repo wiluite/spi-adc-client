@@ -91,15 +91,15 @@ namespace spi_adc_client
 //--- board_initializer        
         struct spi_mode_error : public board_error
         {
-            spi_mode_error(char const* m ) : board_error(m) {}
+            explicit spi_mode_error(char const* m ) : board_error(m) {}
         };
         struct spi_bits_error : public board_error
         {
-            spi_bits_error(char const* m ) : board_error(m) {}
+            explicit spi_bits_error(char const* m ) : board_error(m) {}
         };
         struct spi_speed_error : public board_error
         {
-            spi_speed_error(char const* m ) : board_error(m) {}
+            explicit spi_speed_error(char const* m ) : board_error(m) {}
         };
         
         class board_initializer
@@ -143,7 +143,7 @@ namespace spi_adc_client
 //--- board_commander                
         struct configure_command_error : public board_error
         {
-            configure_command_error(char const* m ) : board_error(m) {}
+            explicit configure_command_error(char const* m ) : board_error(m) {}
         };       
         
         class board_commander
@@ -228,16 +228,20 @@ namespace spi_adc_client
                 constexpr uint8_t set_adc_cmd = 5;
 
                 return !(
-                        (!setup_command(ch_cnt_fun, set_chan_cnt_cmd, "Channel number setup command- OK: ", static_cast<int> (set_chan_cnt_cmd)
+                        (!setup_command(ch_cnt_fun, set_chan_cnt_cmd, "Channel number setup command - OK: "
+                        , static_cast<int> (set_chan_cnt_cmd)
                         , " number: ", static_cast<int> (ch_cnt_fun())))
                         ||
-                        (!setup_command(input_range_code_fun, set_input_range_cmd, "Input range setup command- OK: ", static_cast<int> (set_input_range_cmd)
+                        (!setup_command(input_range_code_fun, set_input_range_cmd, "Input range setup command - OK: "
+                        , static_cast<int> (set_input_range_cmd)
                         , " range code: ", static_cast<int> (input_range_code_fun())))
                         ||
-                        (!setup_command(sample_size_fun, set_sample_size_cmd, "Sample size setup command- OK: ", static_cast<int> (set_sample_size_cmd)
+                        (!setup_command(sample_size_fun, set_sample_size_cmd, "Sample size setup command - OK: "
+                        , static_cast<int> (set_sample_size_cmd)
                         , " size: ", static_cast<int> (sample_size_fun())))
                         ||
-                        (!setup_command(freq_code_fun, set_adc_cmd, "Channel sample rate setup command- OK: ", static_cast<int> (set_adc_cmd), " : "
+                        (!setup_command(freq_code_fun, set_adc_cmd, "Channel sample rate setup command- OK: "
+                        , static_cast<int> (set_adc_cmd), " : "
                         , channel_rate))
                         );
             }
@@ -360,20 +364,21 @@ namespace spi_adc_client
         }
         
     public:
-        struct acquisition_switch_exception : public std::exception
+        struct acquisition_switch_exception : public Board::board_error
         {            
+            explicit acquisition_switch_exception(char const* m ) : Board::board_error(m) {}
         };
         
         struct acquisition_switch_start_exception : public acquisition_switch_exception
-        {            
+        {           
+            explicit acquisition_switch_start_exception(char const* m ) : acquisition_switch_exception(m) {}
         };
 
         explicit acquisition_switch(Board const & b) : b(b), bc(b)
         {
             if (!start_adc())
             {
-                Log_Wrapper("Can't start data acquisition!");
-                throw acquisition_switch_start_exception();
+                throw acquisition_switch_start_exception("can't start data acquisition!");
             }
         }
         
