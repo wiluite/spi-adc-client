@@ -336,7 +336,7 @@ namespace spi_adc_client
             return commander;
         }
                 
-        auto read_buffer(uint8_t * const buf_ptr) const noexcept -> decltype(commander.read_buffer(buf_ptr))
+        auto read_buffer(uint8_t * const buf_ptr)
         {
             return commander.read_buffer(buf_ptr);
         }        

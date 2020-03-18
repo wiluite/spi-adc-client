@@ -40,7 +40,7 @@
         <ccTool>
           <developmentMode>6</developmentMode>
           <architecture>1</architecture>
-          <standard>8</standard>
+          <standard>11</standard>
           <commandLine>-mcpu=cortex-a53 -mfloat-abi=hard -mtune=cortex-a53 -stdlib=libc++ -fexceptions -fno-strict-aliasing -ftemplate-depth=1024 -pedantic-errors -mthread-model posix</commandLine>
           <warningLevel>3</warningLevel>
         </ccTool>
