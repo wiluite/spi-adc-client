@@ -49,21 +49,22 @@ namespace spi_adc_client
                 
     private:            
         
-//--- board_handle
-        class spi_device_opening_error : public board_error
-        {
-            int h;
-        public:    
-            explicit spi_device_opening_error(int h) : h(h) {}
-            const char* what() const noexcept override
-            {
-                msg = std::string("spi_device_opening_error: ") + std::to_string(h); 
-                return msg.c_str();
-            }            
-        };
-        
+//--- board_handle        
         class board_handle
         {
+            class spi_device_opening_error : public board_error 
+            {
+                int h;
+            public:
+
+                explicit spi_device_opening_error(int h) : h(h) {}
+
+                const char* what() const noexcept override {
+                    msg = std::string("spi_device_opening_error: ") + std::to_string(h);
+                    return msg.c_str();
+                }
+            };
+            
             int handle_;
         public:    
             board_handle() : handle_(open("/dev/spidev1.0", O_RDWR)) 
@@ -88,22 +89,22 @@ namespace spi_adc_client
             }
         };
         
-//--- board_initializer        
-        struct spi_mode_error : public board_error
-        {
-            explicit spi_mode_error(char const* m ) : board_error(m) {}
-        };
-        struct spi_bits_error : public board_error
-        {
-            explicit spi_bits_error(char const* m ) : board_error(m) {}
-        };
-        struct spi_speed_error : public board_error
-        {
-            explicit spi_speed_error(char const* m ) : board_error(m) {}
-        };
-        
+//--- board_initializer                
         class board_initializer
         {
+            struct spi_mode_error : public board_error
+            {
+                explicit spi_mode_error(char const* m ) : board_error(m) {}
+            };
+            struct spi_bits_error : public board_error
+            {
+                explicit spi_bits_error(char const* m ) : board_error(m) {}
+            };
+            struct spi_speed_error : public board_error
+            {
+                explicit spi_speed_error(char const* m ) : board_error(m) {}
+            };
+            
             uint32_t const mode = SPI_MODE_1; // CPOL=0 CPHA=1 (MSB by default!)           
             uint8_t const bits = 8;
             uint32_t const speed = 10000000;
@@ -140,14 +141,14 @@ namespace spi_adc_client
             friend class board;
         };
 
-//--- board_commander                
-        struct configure_command_error : public board_error
-        {
-            explicit configure_command_error(char const* m ) : board_error(m) {}
-        };       
-        
+//--- board_commander                        
         class board_commander
         {
+            struct configure_command_error : public board_error
+            {
+                explicit configure_command_error(char const* m ) : board_error(m) {}
+            };       
+            
             board const& b;
 
             template<typename F, typename ... T>
@@ -160,8 +161,8 @@ namespace spi_adc_client
 
                 static struct spi_ioc_transfer tr[2]
                 {
-                    {(__u64) tx1, (__u64) rx1, sizeof (tx1), b.get_speed(), 500, b.get_bits(), 0, 0, 0, 0},
-                    {(__u64) tx2, (__u64) rx2, sizeof (tx2), b.get_speed(), 100, b.get_bits(), 0, 0, 0, 0}
+                    {(__u64) tx1, (__u64) rx1, sizeof (tx1), b.get_speed(), 50, b.get_bits(), 0, 0, 0, 0},
+                    {(__u64) tx2, (__u64) rx2, sizeof (tx2), b.get_speed(), 50, b.get_bits(), 0, 0, 0, 0}
                 };
 
                 if (ioctl(b, SPI_IOC_MESSAGE(2), tr) < 1) 
@@ -227,23 +228,23 @@ namespace spi_adc_client
                 constexpr uint8_t set_sample_size_cmd = 4;
                 constexpr uint8_t set_adc_cmd = 5;
 
-                return !(
-                        (!setup_command(ch_cnt_fun, set_chan_cnt_cmd, "Channel number setup command - OK: "
+                return 
+                        (setup_command(ch_cnt_fun, set_chan_cnt_cmd, "Channel number setup command - OK: "
                         , static_cast<int> (set_chan_cnt_cmd)
                         , " number: ", static_cast<int> (ch_cnt_fun())))
-                        ||
-                        (!setup_command(input_range_code_fun, set_input_range_cmd, "Input range setup command - OK: "
+                        &&
+                        (setup_command(input_range_code_fun, set_input_range_cmd, "Input range setup command - OK: "
                         , static_cast<int> (set_input_range_cmd)
                         , " range code: ", static_cast<int> (input_range_code_fun())))
-                        ||
-                        (!setup_command(sample_size_fun, set_sample_size_cmd, "Sample size setup command - OK: "
+                        &&
+                        (setup_command(sample_size_fun, set_sample_size_cmd, "Sample size setup command - OK: "
                         , static_cast<int> (set_sample_size_cmd)
                         , " size: ", static_cast<int> (sample_size_fun())))
-                        ||
-                        (!setup_command(freq_code_fun, set_adc_cmd, "Channel sample rate setup command - OK: "
+                        &&
+                        (setup_command(freq_code_fun, set_adc_cmd, "Channel sample rate setup command - OK: "
                         , static_cast<int> (set_adc_cmd), " : "
                         , channel_rate))
-                        );
+                        ;
             }
 
             max_read_length_type read_ready_flag_command() const noexcept 
@@ -351,16 +352,20 @@ namespace spi_adc_client
         Board const & b;
         typename Board::board_commander const & bc;
         
-        bool start_adc() const noexcept
+        void start_adc() const
         {
             constexpr uint8_t start_adc_cmd = 1;
-            return bc.setup_command([]() noexcept {return (uint8_t)0;}, start_adc_cmd, "Start ADC command - OK: ", static_cast<int>(start_adc_cmd));
+            if (!bc.setup_command([]() noexcept {return (uint8_t)0;}, start_adc_cmd, "Start ADC command - OK: ", static_cast<int>(start_adc_cmd)))
+                throw acquisition_switch_start_exception("can't start data acquisition!");
         }
 
-        bool stop_adc() const noexcept
+        void stop_adc() const noexcept
         {
             constexpr uint8_t stop_adc_cmd = 0;
-            return bc.setup_command([]() noexcept {return (uint8_t)0;}, stop_adc_cmd, "Stop ADC command - OK: ", static_cast<int>(stop_adc_cmd));
+            if (!bc.setup_command([]() noexcept {return (uint8_t)0;}, stop_adc_cmd, "Stop ADC command - OK: ", static_cast<int>(stop_adc_cmd)))
+                Log_Wrapper("can't stop data acquisition!");                     
+            else
+                Log_Wrapper("Data acquisition successfully stopped.");                
         }
         
     public:
@@ -376,10 +381,7 @@ namespace spi_adc_client
 
         explicit acquisition_switch(Board const & b) : b(b), bc(b)
         {
-            if (!start_adc())
-            {
-                throw acquisition_switch_start_exception("can't start data acquisition!");
-            }
+            start_adc();
         }
         
         using class_type = acquisition_switch<Board>;
@@ -391,13 +393,7 @@ namespace spi_adc_client
                 
         ~acquisition_switch() noexcept
         {
-            if (!stop_adc())
-            {
-                Log_Wrapper("can't stop data acquisition!");     
-            } else
-            {
-                Log_Wrapper("Data acquisition successfully stopped.");                
-            }
+            stop_adc();
         }        
     };
     

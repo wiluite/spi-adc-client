@@ -23,8 +23,6 @@ int main(int argc, char** argv)
     {
         board b;
         static std::atomic<bool> io_flag{false};
-        static uint8_t rcv_buf[std::numeric_limits<board::max_read_length_type>::max() + std::numeric_limits<board::max_read_length_type>::min() + 1];
-        static_assert(sizeof (rcv_buf) == 65536, "");
 
         std::thread io([&b]() 
         {
@@ -34,6 +32,9 @@ int main(int argc, char** argv)
                 io_flag = true;
                 while (io_flag) 
                 {
+                    static uint8_t rcv_buf[std::numeric_limits<board::max_read_length_type>::max() + std::numeric_limits<board::max_read_length_type>::min() + 1];
+                    static_assert(sizeof (rcv_buf) == 65536, "");
+
                     if (auto const len = b.read_buffer(rcv_buf)) 
                     {
                         static std::ofstream binary_file{"oscillogram.bin", std::ios::out | std::ios::binary};
