@@ -52,12 +52,16 @@ namespace spi_adc_client
 //--- board_handle        
         class board_handle
         {
+        public:    
+            using device_handle_type = int;
+        
+        private:    
             class spi_device_opening_error : public board_error 
             {
-                int h;
+                device_handle_type h;
             public:
 
-                explicit spi_device_opening_error(int h) : h(h) {}
+                explicit spi_device_opening_error(device_handle_type h) : h(h) {}
 
                 const char* what() const noexcept override {
                     msg = std::string("spi_device_opening_error: ") + std::to_string(h);
@@ -65,7 +69,7 @@ namespace spi_adc_client
                 }
             };
             
-            int handle_;
+            device_handle_type handle_;
         public:    
             board_handle() : handle_(open("/dev/spidev1.0", O_RDWR)) 
             {
@@ -83,7 +87,7 @@ namespace spi_adc_client
                 }
             }
             
-            operator int() const noexcept
+            operator device_handle_type() const noexcept
             {
                 return handle_;
             }
