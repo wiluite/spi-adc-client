@@ -42,8 +42,8 @@ OBJECTFILES= \
 CFLAGS=
 
 # CC Compiler Flags
-CCFLAGS=-m32 -mcpu=cortex-a53 -mfloat-abi=hard -mtune=cortex-a53 -stdlib=libc++ -fexceptions -fno-strict-aliasing -ftemplate-depth=1024 -pedantic-errors -mthread-model posix
-CXXFLAGS=-m32 -mcpu=cortex-a53 -mfloat-abi=hard -mtune=cortex-a53 -stdlib=libc++ -fexceptions -fno-strict-aliasing -ftemplate-depth=1024 -pedantic-errors -mthread-model posix
+CCFLAGS=-m32 -mcpu=cortex-a53 -mfloat-abi=hard -mtune=cortex-a53 -stdlib=libc++ -fexceptions -fno-strict-aliasing -ftemplate-depth=1024 -pedantic-errors -mthread-model posix -Wall -Wextra
+CXXFLAGS=-m32 -mcpu=cortex-a53 -mfloat-abi=hard -mtune=cortex-a53 -stdlib=libc++ -fexceptions -fno-strict-aliasing -ftemplate-depth=1024 -pedantic-errors -mthread-model posix -Wall -Wextra
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -65,7 +65,7 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/spi-adc-client: ${OBJECTFILES}
 ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -Werror -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
+	$(COMPILE.cc) -g -Werror -std=c++17 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
 
 # Subprojects
 .build-subprojects:

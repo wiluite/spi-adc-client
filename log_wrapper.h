@@ -5,7 +5,7 @@
 
 //Stroustrup 4, 28.6.1
 
-static inline void print_to_obuf(std::ostream & log) noexcept
+static inline void print_to_obuf(std::ostream &) noexcept
 {}
 
 template <typename T>

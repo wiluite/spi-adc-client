@@ -158,7 +158,7 @@ namespace spi_adc_client
             template<typename F, typename ... T>
             bool setup_command(F const & param_fun, uint8_t cmd_number, T &&... args) const noexcept 
             {
-                static_assert(std::is_same<uint8_t, decltype(param_fun())>::value, "");
+                static_assert(std::is_same<uint8_t, decltype(param_fun())>::value);
                 static uint8_t tx1[1] = {cmd_number};
                 static decltype(param_fun()) tx2[2] = {param_fun(), 0};
                 static uint8_t rx1[1], rx2[2];
@@ -197,7 +197,7 @@ namespace spi_adc_client
                 auto const input_range_code_fun = []() noexcept 
                 {
                     constexpr uint8_t SPI_RANGE_10 = 1;
-                    constexpr uint8_t SPI_RANGE_2 = 0;
+//                    constexpr uint8_t SPI_RANGE_2 = 0;
                     return SPI_RANGE_10; // no difference for imitator
                 };
 
@@ -283,12 +283,12 @@ namespace spi_adc_client
 
             max_read_length_type read_buffer(uint8_t * const buf_ptr) const noexcept 
             {
-                static_assert(std::is_same<decltype(buf_ptr), uint8_t * const>::value, "");
+                static_assert(std::is_same<decltype(buf_ptr), uint8_t * const>::value);
 
                 if (auto const len = read_ready_flag_command()) 
                 {                                   
                     static uint8_t dummy_tx_buf[std::numeric_limits<max_read_length_type>::max() + std::numeric_limits<max_read_length_type>::min() + 1];
-                    static_assert(sizeof (dummy_tx_buf) == 65536, "");
+                    static_assert(sizeof (dummy_tx_buf) == 65536);
                     
                     static struct spi_ioc_transfer tr[1]
                     {

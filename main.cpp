@@ -16,7 +16,7 @@
 #include <thread>
 #include <fstream>
 
-int main(int argc, char** argv) 
+int main()
 {
     using namespace spi_adc_client;
     try
@@ -33,7 +33,7 @@ int main(int argc, char** argv)
                 while (io_flag) 
                 {
                     static uint8_t rcv_buf[std::numeric_limits<board::max_read_length_type>::max() + std::numeric_limits<board::max_read_length_type>::min() + 1];
-                    static_assert(sizeof (rcv_buf) == 65536, "");
+                    static_assert(sizeof (rcv_buf) == 65536);
 
                     if (auto const len = b.read_buffer(rcv_buf)) 
                     {
