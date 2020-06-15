@@ -32,4 +32,3 @@ public:
         std::cout << log.str() << std::endl;
     }
 };
-

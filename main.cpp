@@ -22,29 +22,28 @@ int main()
     try
     {
         board b;
-        static std::atomic<bool> io_flag{false};
+        std::atomic io_flag {true};
 
-        std::thread io([&b]() 
+        std::thread io([ & ]()
         {
-            try 
+            try
             {
-                acquisition_switch<board> s(b);
-                io_flag = true;
-                while (io_flag) 
+                acquisition_switch s(b);
+                while (io_flag)
                 {
                     static uint8_t rcv_buf[std::numeric_limits<board::max_read_length_type>::max() + std::numeric_limits<board::max_read_length_type>::min() + 1];
                     static_assert(sizeof (rcv_buf) == 65536);
 
-                    if (auto const len = b.read_buffer(rcv_buf)) 
+                    if (auto const len = b.read_buffer(rcv_buf))
                     {
                         static std::ofstream binary_file{"oscillogram.bin", std::ios::out | std::ios::binary};
                         binary_file.write((char const*) rcv_buf, len);
-                    } else 
+                    } else
                     {
                         std::this_thread::sleep_for(std::chrono::microseconds(10));
                     }
                 }
-            } catch (typename acquisition_switch<board>::acquisition_switch_exception const & e) 
+            } catch (acquisition_switch<board>::acquisition_switch_exception const & e) 
             {
                 Log_Wrapper("acquisition_switch_start_exception ", e.what());
                 return;
@@ -57,6 +56,7 @@ int main()
     } catch (board::board_error const & e)
     {
         Log_Wrapper(e.what());
+        return -1;
     }
     return 0;
 }
