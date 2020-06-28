@@ -21,7 +21,8 @@ int main()
     using namespace spi_adc_client;
     try
     {
-        board b;
+        board mov_from;
+        board b {std::move(mov_from)};
         std::atomic io_flag {true};
 
         std::thread io([ & ]()
@@ -36,6 +37,7 @@ int main()
 
                     if (auto const len = b.read_buffer(rcv_buf))
                     {
+                        // TODO: turn to memory-mapped file
                         static std::ofstream binary_file{"oscillogram.bin", std::ios::out | std::ios::binary};
                         binary_file.write((char const*) rcv_buf, len);
                     } else

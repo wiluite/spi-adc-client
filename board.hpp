@@ -27,6 +27,7 @@
 #include <unordered_map>
 #include <type_traits>
 #include <utility> // for std::move()
+#include <sys/file.h> //flock
 
 namespace spi_adc_client
 {
@@ -36,6 +37,7 @@ namespace spi_adc_client
         class board_error : public std::exception
         {
         protected:
+            // TODO: turn to char const*
             mutable std::string msg {"board_error"};
         public:
             board_error() = default;
@@ -49,6 +51,61 @@ namespace spi_adc_client
         using max_read_length_type = uint16_t;
 
     private:
+//--- board_protector
+        class board_protector
+        {
+            int fd;
+            constexpr static char const * const path = "/var/run/board.lock";
+            class spi_device_protecting_error : public board_error
+            {
+            public:
+                const char* what() const noexcept override {
+                    msg = "spi_device_protecting_error";
+                    return msg.c_str();
+                }
+            };
+
+        public:
+            board_protector()
+            {
+                fd = open(path, O_RDONLY | O_NOCTTY | O_CREAT);
+                if ((fd < 0) || (flock(fd, LOCK_EX | LOCK_NB) < 0))
+                {
+                    // unnecessary check and action
+                    if (fd >= 0)
+                    {
+                        close(fd);
+                    }
+                    throw spi_device_protecting_error();
+                }
+            }
+
+            board_protector (board_protector&& bp) noexcept : fd(bp.fd)
+            {
+                bp.fd = -1;
+            }
+
+            // TODO: probably "delete"
+            board_protector& operator= (board_protector&& bp) noexcept
+            {
+                if (this != &bp)
+                {
+                    fd = bp.fd;
+                    bp.fd = -1;
+                }
+                return *this;
+            }
+
+            ~board_protector() noexcept
+            {
+                // unnecessary actions at neither actual nor move-from object
+                if (fd >= 0)
+                {
+                    flock(fd, LOCK_UN);
+                    close(fd);
+                }
+            }
+        };
 
 //--- board_handle
         class board_handle
@@ -70,7 +127,7 @@ namespace spi_adc_client
             };
 
             device_handle_type handle_;
-            bool movedFrom {false};
+            bool moved_from {false}; // special case!
         public:
             board_handle() : handle_(open("/dev/spidev1.0", O_RDWR))
             {
@@ -82,29 +139,30 @@ namespace spi_adc_client
 
             board_handle (board_handle&& bh) noexcept : handle_(bh.handle_)
             {
-                movedFrom = false;
-                bh.movedFrom = true;
+                // NOTE: we can't call bh.handle_ = -1, because bh.handle_ is still needed by board_initializer's move constructor
+                bh.moved_from = true;
+                moved_from = false;
             }
 
+            // TODO: probably "delete"
             board_handle& operator= (board_handle&& bh) noexcept
             {
                 if (this != &bh)
                 {
-                    movedFrom = false;
                     handle_ = bh.handle_;
-                    bh.movedFrom = true;
+                    // NOTE: we can't call bh.handle_ = -1, because bh.handle_ is still needed by board_initializer's move assignment operator
+                    bh.moved_from = true;                    
+                    moved_from = false;
                 }
                 return *this;
             }
 
             ~board_handle() noexcept
             {
-                if (movedFrom)
+                if (moved_from)
                     return;
-                if (handle_ >= 0)
-                {
-                    close(handle_);
-                }
+                // we always have handle_ >= 0 here! No need checking
+                close(handle_);
             }
 
             operator device_handle_type() const noexcept
@@ -162,8 +220,8 @@ namespace spi_adc_client
                     throw spi_speed_error("can't get spi speed");
                 }
             }
-            board_initializer (board_initializer&& bi) noexcept = default;
-            board_initializer& operator= (board_initializer&& bh) noexcept = default;
+            board_initializer (board_initializer&& ) /*noexcept*/ = default;
+            board_initializer& operator= (board_initializer&& ) /*noexcept*/ = default;
 
             friend class board;
         };
@@ -314,8 +372,8 @@ namespace spi_adc_client
                     throw configure_command_error("can't configure board, check your imitator software.");
             }
 
-            board_commander (board_commander&& bc) noexcept = default;
-            board_commander& operator= (board_commander&& ) noexcept = default;
+            board_commander (board_commander&& ) /*noexcept*/ = default;
+            board_commander& operator= (board_commander&& ) /*noexcept*/ = default;
             
             max_read_length_type read_buffer(uint8_t * const buf_ptr) const noexcept 
             {
@@ -350,13 +408,15 @@ namespace spi_adc_client
             friend class acquisition_switch;
         };
 
+        board_protector protector;
         board_handle handle_;
         board_initializer initializer;
         board_commander commander;
 
     public:
 
-        board() : handle_(), initializer (&handle_), commander(this) {}
+        // TODO: configure with parameters to run
+        board() : /*protector(), handle_(),*/ initializer (&handle_), commander(this) {}
         
         board (board&& b) noexcept = default;
         board& operator= (board&& b) noexcept = default;
