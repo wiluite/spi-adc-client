@@ -192,30 +192,30 @@ namespace spi_adc_client
             uint8_t bits = 8;
             uint32_t speed = 10000000;
         public:
-            board_handle * bh_;
-            explicit board_initializer (board_handle * bh) : bh_(bh)
+            board_handle & bh_;
+            explicit board_initializer (board_handle & bh) : bh_(bh)
             {
-                if (-1 == ioctl(*bh_, SPI_IOC_WR_MODE, &mode))
+                if (-1 == ioctl(bh_, SPI_IOC_WR_MODE, &mode))
                 {
                     throw spi_mode_error("can't set spi mode");
                 }
-                if (-1 == ioctl(*bh_, SPI_IOC_RD_MODE, &mode))
+                if (-1 == ioctl(bh_, SPI_IOC_RD_MODE, &mode))
                 {
                     throw spi_mode_error("can't get spi mode");
                 }
-                if (-1 == ioctl(*bh_, SPI_IOC_WR_BITS_PER_WORD, &bits))
+                if (-1 == ioctl(bh_, SPI_IOC_WR_BITS_PER_WORD, &bits))
                 {
                     throw spi_bits_error("can't set spi bits");
                 }
-                if (-1 == ioctl(*bh_, SPI_IOC_RD_BITS_PER_WORD, &bits))
+                if (-1 == ioctl(bh_, SPI_IOC_RD_BITS_PER_WORD, &bits))
                 {
                     throw spi_bits_error("can't get spi bits");
                 }
-                if (-1 == ioctl(*bh_, SPI_IOC_WR_MAX_SPEED_HZ, &speed))
+                if (-1 == ioctl(bh_, SPI_IOC_WR_MAX_SPEED_HZ, &speed))
                 {
                     throw spi_speed_error("can't set spi speed");
                 }
-                if (-1 == ioctl(*bh_, SPI_IOC_RD_MAX_SPEED_HZ, &speed))
+                if (-1 == ioctl(bh_, SPI_IOC_RD_MAX_SPEED_HZ, &speed))
                 {
                     throw spi_speed_error("can't get spi speed");
                 }
@@ -245,7 +245,7 @@ namespace spi_adc_client
                 explicit configure_command_error(char const* m ) : board_error(m) {}
             };
 
-            board * b;
+            board & b;
 
             template<typename F, typename ... T>
             auto setup_command(F const & param_fun, uint8_t cmd_number, T &&... args) const noexcept 
@@ -257,11 +257,11 @@ namespace spi_adc_client
 
                 static struct spi_ioc_transfer tr[2]
                 {
-                    {(__u64) tx1, (__u64) rx1, sizeof (tx1), b->get_speed(), 50, b->get_bits(), 0, 0, 0, 0},
-                    {(__u64) tx2, (__u64) rx2, sizeof (tx2), b->get_speed(), 50, b->get_bits(), 0, 0, 0, 0}
+                    {(__u64) tx1, (__u64) rx1, sizeof (tx1), b.get_speed(), 50, b.get_bits(), 0, 0, 0, 0},
+                    {(__u64) tx2, (__u64) rx2, sizeof (tx2), b.get_speed(), 50, b.get_bits(), 0, 0, 0, 0}
                 };
 
-                if (ioctl(*b, SPI_IOC_MESSAGE(2), tr) < 1) 
+                if (ioctl(b, SPI_IOC_MESSAGE(2), tr) < 1) 
                 {
                     Log_Wrapper("can't call SPI_IOC_MESSAGE(2) for command: ", static_cast<int> (cmd_number), ",", __FILE__, ",", __LINE__);
                     return false;
@@ -352,11 +352,11 @@ namespace spi_adc_client
 
                 static struct spi_ioc_transfer tr[2]
                 {
-                    {(__u64) tx1, (__u64) rx1, sizeof (tx1), b->get_speed(), 50, b->get_bits(), 0, 0, 0, 0},
-                    {(__u64) tx2, (__u64) rx2, sizeof (tx2), b->get_speed(), 0, b->get_bits(), 0, 0, 0, 0}
+                    {(__u64) tx1, (__u64) rx1, sizeof (tx1), b.get_speed(), 50, b.get_bits(), 0, 0, 0, 0},
+                    {(__u64) tx2, (__u64) rx2, sizeof (tx2), b.get_speed(), 0, b.get_bits(), 0, 0, 0, 0}
                 };
 
-                if (ioctl(*b, SPI_IOC_MESSAGE(2), tr) < 1)
+                if (ioctl(b, SPI_IOC_MESSAGE(2), tr) < 1)
                 {
                     Log_Wrapper("can't call SPI_IOC_MESSAGE(2) for command: ", static_cast<int> (cmd), ",", __FILE__, ",", __LINE__);
                     return 0;
@@ -366,7 +366,7 @@ namespace spi_adc_client
             }
 
         public:
-            explicit board_commander (board * b) : b(b)
+            explicit board_commander (board & b) : b(b)
             {
                 if (!configure())
                     throw configure_command_error("can't configure board, check your imitator software.");
@@ -386,12 +386,12 @@ namespace spi_adc_client
 
                     static struct spi_ioc_transfer tr[1]
                     {
-                        {(__u64) dummy_tx_buf, (__u64) buf_ptr, len, b->get_speed(), 0, b->get_bits(), 0, 0, 0, 0}
+                        {(__u64) dummy_tx_buf, (__u64) buf_ptr, len, b.get_speed(), 0, b.get_bits(), 0, 0, 0, 0}
                     };
 
                     tr[0].len = len;
 
-                    if (ioctl(*b, SPI_IOC_MESSAGE(1), tr) < 1) 
+                    if (ioctl(b, SPI_IOC_MESSAGE(1), tr) < 1) 
                     {
                         Log_Wrapper("can't send an SPI msg, len = ", len, ",", __FILE__, ",", __LINE__);
                         return 0u;
@@ -416,7 +416,7 @@ namespace spi_adc_client
     public:
 
         // TODO: configure with parameters to run
-        board() : /*protector(), handle_(),*/ initializer (&handle_), commander(this) {}
+        board() : /*protector(), handle_(),*/ initializer (handle_), commander(*this) {}
         
         board (board&& b) noexcept = default;
         board& operator= (board&& b) noexcept = default;
